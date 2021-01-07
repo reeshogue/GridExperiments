@@ -1,5 +1,3 @@
-#I haven't programmed this in a while so...
-
 import torch
 import collections
 import random
@@ -87,6 +85,14 @@ class AdversaryNet(torch.nn.Module):
         x = self.tconv(x)
         return x, timesteps
 
+def kl_div(x1, x2):
+    return torch.sum(x1*(torch.log(x1/x2)))
+
+def jensen_shannon(input, target):
+    m = .5 * (input + target)
+    y = .5 * kl_div(input, m) + .5 * kl_div(target, m)
+    return y
+
 class Agent:
     def __init__(self, size):
 
@@ -118,8 +124,8 @@ class Agent:
             self.optim_actor.zero_grad()
             faction = self.actor(grid, grid+gridn, delta_timesteps)
             aaction = self.actor(grid, *self.adversary(grid))
-            loss_action = torch.nn.functional.mse_loss(faction, action)
-            loss = torch.nn.functional.mse_loss(aaction, action) + loss_action
+            loss_action = jensen_shannon(faction, action)
+            loss = jensen_shannon(aaction, action) + loss_action
             loss.backward()
             self.optim_actor.step()
 
