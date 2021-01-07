@@ -1,6 +1,6 @@
 # GridExperiments
 
-Grid Experiment for Openended UDRL algorithm, an algorithm which uses an upside down rl algorithm and an adversary which tries to maximize the loss of the actor in order to navigate the space of an empty 32x32 grid. 
+Grid Experiment for Openended UDRL algorithm, an algorithm which uses an upside down RL algorithm and an adversary which tries to maximize the loss of the actor in order to navigate the space of an empty 32x32 grid. 
 
 ![grid.png](/grid.png "The grid wraps around...")
 
