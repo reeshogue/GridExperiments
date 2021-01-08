@@ -1,3 +1,5 @@
+#I haven't programmed this in a while so...
+
 import torch
 import collections
 import random
@@ -13,19 +15,21 @@ class EmptyUnmotivatedGrid:
         self.player = [random.randint(0, size[-2]), random.randint(0, size[-1])]
     def step(self, action):
         try:
-            if action == 2:
+            if action == 0:
                 self.player[0] += 1
-            elif action == 3:
+            elif action == 1:
                 self.player[0] -= 1
-            elif action == 4:
+            elif action == 2:
                 self.player[1] += 1
-            elif action == 5:
+            elif action == 3:
                 self.player[1] -= 1
+            elif action == 4:
+                pass
             self.grid[0][0][self.player[0]][self.player[1]] += 1
         except:
             pass
 
-        return self.grid
+        return self.grid, self.player
 
 class ActorNet(torch.nn.Module):
     def __init__(self, size=4):
@@ -33,7 +37,7 @@ class ActorNet(torch.nn.Module):
         self.conv = torch.nn.Conv2d(1, 12, (3,3))
         self.conv2 = torch.nn.Conv2d(12, 12, (3,3))
         self.conv3 = torch.nn.Conv2d(12, 1, (3,3))
-        self.linear = torch.nn.Linear(26*26, 6)
+        self.linear = torch.nn.Linear(26*26, 5)
     def forward(self, x, adversary, timestep):
         x = self.conv(x + adversary)
         x += timestep
@@ -144,8 +148,10 @@ class Agent:
             self.optim_q.step()
 
 
-def show_grid(grid):
-    grid = copy.deepcopy(grid)
+def show_grid(grid, player):
+    grid = grid.clone().detach()
+    grid = torch.sigmoid(grid)
+    grid[0][0][player[0]][player[1]] = 2
     grid = grid.squeeze(0).squeeze(0).numpy()
     plt.imshow(grid)
     plt.pause(0.01)
@@ -160,9 +166,9 @@ def main():
     while True:
         with torch.no_grad():
             action = agent.act(grid)
-            action_argmax = np.random.choice(6, p=action[0].numpy())
-            grid = env.step(action_argmax)
-            show_grid(grid)
+            action_argmax = np.random.choice(5, p=action[0].numpy())
+            grid, player = env.step(action_argmax)
+            show_grid(grid, player)
         agent.remember(grid, action, timestep)
         agent.replay()
         timestep += 1.0     
